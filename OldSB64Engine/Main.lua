@@ -19,7 +19,6 @@ canDiveReal = AbilitiesFolder.canDive
 canTripleJ = AbilitiesFolder.canTripleJump
 canSlide = AbilitiesFolder.canSlide
 canShowTrails = AbilitiesFolder.canShowTrails
-Swimming = char.Torso:WaitForChild("Swimming")
 repeat wait() until char:WaitForChild("Humanoid") ~= nil
 LongJumpAnim = char.Humanoid:LoadAnimation(AnimationsFolder.Longjump)
 GroundPoundAnim = char.Humanoid:LoadAnimation(AnimationsFolder.GroundPound)
@@ -41,14 +40,7 @@ Diving = false
 WallJumping = false
 hitfloor = true
 DiveSliding = false
-boolValue = char:WaitForChild("GroundPounding")
-boolValue2 = char:WaitForChild("isMetal")
 -- // Bools end \\ -
-Trail=game.ReplicatedStorage["Rainbow Trail"]
-plrTrail = Trail:Clone()
-plrTrail.Parent = char.HumanoidRootPart
-plrTrail.Attachment0 = char.Head.FaceFrontAttachment
-plrTrail.Attachment1 = char.Torso.WaistBackAttachment
 stateType = Enum.HumanoidStateType
 humanoid = char.Humanoid
 rootpart:WaitForChild("Jumping").Volume = 3
@@ -116,30 +108,14 @@ function GroundPound()
 	vel.MaxForce = Vector3.new(math.huge,math.huge,math.huge)
 	vel.Name = "GroundPoundVelocity"
 	wait(1)
-	if canShowTrails.Value ~= false then
-		plrTrail.Enabled = true;
-	end
 	PlayAnimation("GroundPound")
-	game.ReplicatedStorage["RemoteEvents"].BoolChange:FireServer(plr)
-	if char:WaitForChild("isMetal").Value ~= true then
-		vel.Velocity = char.HumanoidRootPart.CFrame.upVector * -85
-	else
-		vel.Velocity = char.HumanoidRootPart.CFrame.upVector * -100
-	end
+	vel.Velocity = char.HumanoidRootPart.CFrame.upVector * -75
 	repeat wait() until hitfloor == true
-	plrTrail.Enabled = false;
-	boolValue.Value = true
 	vel:Destroy()
 	hitfloor = false
 	GroundPounding = false
 	char:WaitForChild("Animate").Disabled = false
-	if MetalCapEquipped ~= true then
-		char.Humanoid.WalkSpeed = 25
-	else
-		char.Humanoid.WalkSpeed = 20
-	end
 	wait(0.3)
-	game.ReplicatedStorage["RemoteEvents"].BoolChange2:FireServer(plr)
 end
 hrp = char.HumanoidRootPart
 local canDive = true;
@@ -176,6 +152,9 @@ function LoseGrip()
 	CurrentAttachment = nil
 	WallJumping = false
 end
+Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+Humanoid:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding, false)
+Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
 local sliding = false;
 function JumpN()
 	stage = 0
@@ -191,7 +170,7 @@ RunService.Heartbeat:Connect(function(deltaTime)
 		local hitTag = hit and hit:FindFirstChild("_Wall")
 		if hitTag == nil then
 			-- Temporarily attach the Humanoid to the wall.
-			if hit ~= nil and hit.CanCollide ~= false and Swimming.Value ~= true and VanishCapEquipped ~= true then
+			if hit ~= nil and hit.CanCollide ~= false then
 			local normalCFrame = hit.CFrame:ToObjectSpace(CFrame.new(Vector3.new(0, 0, 0), normal))
 			normalCFrame = normalCFrame - normalCFrame.Position
 			local offsetCFrame = CFrame.new((hit.CFrame:inverse() * RootPart.CFrame).Position)
@@ -245,13 +224,10 @@ CrouchControl = Enum.KeyCode.LeftControl
 MenuOpenControl = Enum.KeyCode.Q
 deb2 = 1
 function Dive()
-	if canDive ~= false and VanishCapEquipped ~= true then
+	if canDive ~= false then
 		LongJumping = false
 		canDive = false;
 		Diving = true;
-		if canShowTrails.Value ~= false then
-			plrTrail.Enabled = true;
-		end
 		diveCount = diveCount + 1;
 		totalDives = totalDives + 1;
 		char:WaitForChild("Animate").Disabled = true
@@ -290,7 +266,6 @@ function DiveSlide()
 		char.Humanoid.JumpPower = 0
 	end
 	DiveSliding = false
-	plrTrail.Enabled = false;
 	vel.Parent = game.ReplicatedStorage
 	PlayAnimation("None")
 	char:WaitForChild("Animate").Disabled = false
@@ -305,7 +280,6 @@ function CancelSlide()
 	humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
 	DiveSpeed = 0
 	DiveSliding = false
-	plrTrail.Enabled = false;
 	vel.Parent = game.ReplicatedStorage
 	char:WaitForChild("Animate").Disabled = false
 	PlayAnimation("None")
@@ -317,7 +291,6 @@ stage = 0
 jumping = false
 falling = false
 triplejumping = false
-MetalCapEquipped = false
 hum = humanoid
 -- Jumps --
 function onJump(val)
@@ -325,156 +298,33 @@ function onJump(val)
 	jumping = val
 	if jumping == true and stage > 1 and stage < 3 and not LongJumping then
 			stage = 3
-			if VanishCapEquipped ~= true then
-				char.Torso.Velocity = char.Torso.Velocity + Vector3.new(0, 95, 0)
-			else
-				char.Torso.Velocity = char.Torso.Velocity + Vector3.new(0, 50, 0)
-			end
-		char.Animate.Disabled = true
-		PlayAnimation("TripleJump")
-		triplejumping = true
-		rootpart:WaitForChild("Jumping").Pitch = 2
-		rootpart:WaitForChild("Jumping"):Play()
-		if canShowTrails.Value ~= false then
-			plrTrail.Enabled = true;
-		end
-		triplejumping = true
-		char.Animate.Disabled = true
+			char.Animate.Disabled = true
+			PlayAnimation("TripleJump")
+			triplejumping = true
+			char:WaitForChild("HumanoidRootPart").Velocity = Vector3.new(0,85,0)
+			rootpart:WaitForChild("Jumping").Pitch = 2
+			rootpart:WaitForChild("Jumping"):Play()
+			triplejumping = true
+			char.Animate.Disabled = true
 	elseif jumping == true and stage >= 1 and stage < 2 and not LongJumping then 
-		stage = 2
-			if VanishCapEquipped ~= true then
-				char.Torso.Velocity = char.Torso.Velocity + Vector3.new(0, 75, 0)
-			else
-				char.Torso.Velocity = char.Torso.Velocity + Vector3.new(0, 30, 0)
-			end
-		rootpart:WaitForChild("Jumping").Pitch = 1.5
-		rootpart:WaitForChild("Jumping"):Play()
-		char:WaitForChild("Animate").Disabled = true
-		PlayAnimation("DoubleJump")
-		doublejump = true
+			stage = 2
+			rootpart:WaitForChild("Jumping").Pitch = 1.5
+			rootpart:WaitForChild("Jumping"):Play()
+			char:WaitForChild("Animate").Disabled = true
+			char:WaitForChild("HumanoidRootPart").Velocity = Vector3.new(0,65,0)
+			PlayAnimation("DoubleJump")
+			doublejump = true
     elseif jumping == true and stage < 1 and not LongJumping then 
-		stage = 1
-		rootpart:WaitForChild("Jumping").Pitch = 1
-		rootpart:WaitForChild("Jumping"):Play()
+			stage = 1
+			rootpart:WaitForChild("Jumping").Pitch = 1
+			rootpart:WaitForChild("Jumping"):Play()
 		end
 	end
 end
 hum.Jumping:connect(onJump)
-MetalCapTimer = 19
-VanishCapTimer = 30
-Time = 0
-MetalCapOver = false
-VanishCapEquipped = false
 --//Moveset End\\--
-coroutine.wrap(function()
-	while true do
-		wait()
-		if Time > 16 and VanishCapEquipped ~= true then
-			game.ReplicatedStorage["RemoteEvents"].MetalInvisible:FireServer(plr)
-			wait(.3)
-			game.ReplicatedStorage["RemoteEvents"].MetalVisible:FireServer(plr)
-			wait(.3)
-		elseif Time > 16 and VanishCapEquipped ~= false then
-			game.ReplicatedStorage["RemoteEvents"].VanishInvisible:FireServer(plr)
-			wait(.3)
-			game.ReplicatedStorage["RemoteEvents"].VanishVisible:FireServer(plr)
-			wait(.3)
-		end
-	end
-end)()
-AntiGravity = -0.3
-AntiGravity1 = 0.5
-function MakeMassless(part)
-	local bv = Instance.new("BodyForce", part)
-	bv.Force = Vector3.new(0,workspace.Gravity * part:GetMass() * AntiGravity,0)
-end
-function MakeMasslessAgain(part)
-	local bv = Instance.new("BodyForce", part)
-	bv.Force = Vector3.new(0,workspace.Gravity * part:GetMass() * AntiGravity1,0)
-end
-function MakeMass(part)
-	for i,v in pairs(part:GetChildren()) do
-		if v.ClassName == "BodyForce" then
-			v:Destroy()
-		end 
-	end
-end
-function MetalCapEnable()
-	for i,v in pairs(char:GetChildren()) do
-		if v.ClassName == "Part" then
-			MakeMassless(v)
-		end
-	end
-	char.Humanoid.WalkSpeed = 20
-	MetalCapEquipped = true
-	plr.PlayerScripts:WaitForChild("LocalBackgroundMusic").Disabled = true
-	local BGM = plr.PlayerScripts.LocalBackgroundMusic:FindFirstChild("BGM")
-	local originalId = BGM.SoundId
-	if BGM ~= nil then
-	local chance = math.random(1,100)
-	if chance == 1 then
-		BGM.SoundId = "rbxassetid://5452258739"
-	else
-		BGM.SoundId = "rbxassetid://5710737711"
-	end
-		BGM:Play()
-	end
-	game.ReplicatedStorage["RemoteEvents"].MetalEffectAdd:FireServer(plr)
-	for count = 1, MetalCapTimer do
-		Time = Time + 1
-		wait(1)
-	end
-	Time = 0
-	MetalCapEquipped = false
-	game.ReplicatedStorage["RemoteEvents"].MetalEffectRemove:FireServer(plr)
-	plr.PlayerScripts:WaitForChild("LocalBackgroundMusic").Disabled = false
-	if BGM ~= nil then
-		plr.PlayerScripts:WaitForChild("LocalBackgroundMusic").BGM.SoundId = originalId
-	end
-	char.Humanoid.JumpPower = 50
-	char.Humanoid.WalkSpeed = 25
-	for i,v in pairs(char:GetChildren()) do
-		if v.ClassName == "Part" then
-			MakeMass(v)
-		end
-	end
-end
 canSpin = true
 grounded = true
-function VanishCapEnable()
-	for i,v in pairs(char:GetChildren()) do
-		if v.ClassName == "Part" then
-			MakeMasslessAgain(v)
-		end
-	end
-	char.Humanoid.JumpPower = 30
-	VanishCapEquipped = true
-	local BGM = plr.PlayerScripts.LocalBackgroundMusic:FindFirstChild("BGM")
-	local originalId = BGM.SoundId
-	if BGM ~= nil then
-		BGM.SoundId = "rbxassetid://170296758"
-		BGM:Play()
-	end
-	Time = 0
-	game.ReplicatedStorage["RemoteEvents"].VanishEffectAdd:FireServer(plr)
-	for count = 1, MetalCapTimer do
-		Time = Time + 1
-		wait(1)
-	end
-	Time = 0
-	VanishCapEquipped = false
-	plr.PlayerScripts:WaitForChild("LocalBackgroundMusic").Disabled = false
-	game.ReplicatedStorage["RemoteEvents"].VanishEffectRemove:FireServer(plr)
-	if BGM ~= nil then
-		plr.PlayerScripts:WaitForChild("LocalBackgroundMusic").BGM.SoundId = originalId
-	end
-	char.Humanoid.JumpPower = 50
-	for i,v in pairs(char:GetChildren()) do
-		if v.ClassName == "Part" then
-			MakeMass(v)
-		end
-	end
-end
 -- Jump Timeout --
 function onFall(val)
 	falling = val
@@ -491,7 +341,7 @@ deb = 1
 debagain = 1
 --//Binding inputs!\\--
 function crouchReal()
-	if canCrouch.Value == true and GroundPounding ~= true and LongJumping ~= true and Diving ~= true and WallJumping ~= true and Swimming.Value ~= true and doublejump ~= true then
+	if canCrouch.Value == true and GroundPounding ~= true and LongJumping ~= true and Diving ~= true and WallJumping ~= true and doublejump ~= true then
 		Crouching = true
 		char.Humanoid.WalkSpeed = 5
 		char:WaitForChild("Animate").Disabled = true
@@ -500,12 +350,8 @@ function crouchReal()
 end
 function uncrouchReal()
 	Crouching = false
-	if MetalCapEquipped ~= true then
-		char.Humanoid.WalkSpeed = 25
-	else
-		char.Humanoid.WalkSpeed = 20
-	end
 	char:WaitForChild("Animate").Disabled = false
+	char.Humanoid.WalkSpeed = 20
 	PlayAnimation("None")
 end
 function longjumpReal()
@@ -513,20 +359,13 @@ function longjumpReal()
 		char:WaitForChild("Animate").Disabled = true
 		Crouching = false
 		LongJumping = true
-		if MetalCapEquipped ~= true then
-			char.Humanoid.WalkSpeed = 25
-		else
-			char.Humanoid.WalkSpeed = 20
-		end
 		char.Humanoid.Jump = true
 		rootpart:WaitForChild("Jumping").Pitch = 1.5
 		rootpart:WaitForChild("Jumping"):Play()
-		if canShowTrails.Value ~= false then
-			plrTrail.Enabled = true;
-		end
 		local BodyVelocity = Instance.new("BodyVelocity",char.Torso)
 		BodyVelocity.MaxForce = Vector3.new(math.huge,0,math.huge)
 		BodyVelocity.Velocity = char.Torso.CFrame.lookVector * 85
+		char.Humanoid.WalkSpeed = 20
 		PlayAnimation("Longjump")
 		game:GetService("Debris"):AddItem(BodyVelocity, .1)
 	end
@@ -537,17 +376,9 @@ local function mobileLongjump(actionName, inputState, inputObject)
 		char:WaitForChild("Animate").Disabled = true
 		Crouching = false
 		LongJumping = true
-		if MetalCapEquipped ~= true then
-			char.Humanoid.WalkSpeed = 25
-		else
-			char.Humanoid.WalkSpeed = 20
-		end
 		char.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
 		rootpart:WaitForChild("Jumping").Pitch = 1.5
 		rootpart:WaitForChild("Jumping"):Play()
-		if canShowTrails.Value ~= false then
-			plrTrail.Enabled = true;
-		end
 		local BodyVelocity = Instance.new("BodyVelocity",char.Torso)
 		BodyVelocity.MaxForce = Vector3.new(math.huge,0,math.huge)
 		BodyVelocity.Velocity = char.Torso.CFrame.lookVector * 85
@@ -557,7 +388,7 @@ local function mobileLongjump(actionName, inputState, inputObject)
 end
 local function groundpound(actionName, inputState, inputObject)
 	local state = char.Humanoid:GetState()
-	if inputState == Enum.UserInputState.Begin  and canGP.Value == true and LongJumping ~= true and GroundPounding ~= true and Diving ~= true and canGroundPound ~= false and WallJumping ~= true and Swimming.Value ~= true then
+	if inputState == Enum.UserInputState.Begin  and canGP.Value == true and LongJumping ~= true and GroundPounding ~= true and Diving ~= true and canGroundPound ~= false and WallJumping ~= true then
 		if state == Enum.HumanoidStateType.Freefall or state == Enum.HumanoidStateType.Jumping then
 			char:WaitForChild("Animate").Disabled = true
 			char.Humanoid.WalkSpeed = 0 
@@ -592,8 +423,6 @@ UIS.InputBegan:connect(function(input, gameProcessed)
 			crouchReal()
 		elseif input.KeyCode == Enum.KeyCode.Space then
 			longjumpReal()
-		elseif input.KeyCode == Enum.KeyCode.F2 and MetalCapEquipped ~= true then
-			SICKOMODE()
 		end
 	elseif input.UserInputType == Enum.UserInputType.Gamepad1 then
 		if input.KeyCode == Enum.KeyCode.ButtonR2 then
@@ -630,35 +459,15 @@ char.Humanoid.StateChanged:connect(function(old, new)
 		rootpart:WaitForChild("Landing").Pitch = 2
 		rootpart:WaitForChild("Landing"):Play()
 		char:WaitForChild("Animate").Disabled = false
-		plrTrail.Enabled = false;
 		wait(0.5)
 		rootpart:WaitForChild("Landing").Pitch = 1
 	elseif GroundPounding and new == Enum.HumanoidStateType.Landed then
-		local dust = game.ReplicatedStorage.particle_groundpound:Clone()
-		dust.Parent = char
-		dust.CFrame = char.HumanoidRootPart.CFrame - Vector3.new(0,1,0)
-		Debris:AddItem(dust, 1.5)
 		rootpart:WaitForChild("Landing").Pitch = 1
 		hitfloor = true
-		plrTrail.Enabled = false;
 		PlayAnimation("None")
 		char.HumanoidRootPart.CFrame = char.HumanoidRootPart.CFrame + Vector3.new(0,1,0)
 		canGroundPound = true
 		stage = 1
-		if boolValue2.Value ~= false then
-			local originalId = rootpart:WaitForChild("Landing").SoundId
-			rootpart:WaitForChild("Landing").SoundId = "rbxassetid://4896108551"
-			rootpart:WaitForChild("Landing"):Play()
-			for i = 1,10 do
-				wait()
-				local a = math.random(-100,100)/100
-				local b = math.random(-100,100)/100
-				local c = math.random(-100,100)/100
-				hum.CameraOffset = Vector3.new(a,b,c)
-			end
-			hum.CameraOffset = Vector3.new(0,0,0)
-			rootpart:WaitForChild("Landing").SoundId = originalId
-		end
         
 	elseif doublejump and new == Enum.HumanoidStateType.Landed then
 		triplejumping = false
@@ -677,17 +486,12 @@ char.Humanoid.StateChanged:connect(function(old, new)
 		PlayAnimation("None")
 		char:WaitForChild("Animate").Disabled = false
 		stage = 0
-		plrTrail.Enabled = false;
 	elseif DiveSlideCanceling and new == Enum.HumanoidStateType.Landed then
 		DiveSlideCanceling = false
 		PlayAnimation("None")
 		char:WaitForChild("Animate").Disabled = false
 	end
 end)
---// i hate myself for doing this \\--
-function SICKOMODE()
-	game.ReplicatedStorage["RemoteEvents"]:FindFirstChild("SICKO MODE"):FireServer(plr)
-end
 --//Effects!\\
 function MakeWeld(parent, part0, part1, c0)
 	local Weld = Instance.new("Weld",parent)
@@ -698,12 +502,6 @@ end
 walking = false
 chara = char
 pose = "None"
-wlkEffect = game.ReplicatedStorage.WalkingEffect:Clone()
-wlkEffect.Parent = char
-MakeWeld(wlkEffect, char.HumanoidRootPart, wlkEffect, CFrame.new(0.00498962402, -2.88499999, -0.00499916077, 1.00000012, 0, 0, 0, 1, 0, 0, 0, 1.00000012))
-brnEffect = game.ReplicatedStorage.BurnEffect:Clone()
-brnEffect.Parent = char
-MakeWeld(brnEffect, char.HumanoidRootPart, brnEffect, CFrame.new(0.0349884033, -1.005, -0.110002518, 1.00000024, 0, 0, 0, 1, 0, 0, 0, 1.00000024))
 local speed = 0
 char.Humanoid.Running:connect(function(s)
 	speed = s
@@ -751,12 +549,6 @@ coroutine.wrap(function()
 		end
 	end
 end)()
-game.ReplicatedStorage["RemoteEvents"].MetalCollect.OnClientEvent:Connect(function()
-	MetalCapEnable()
-end)
-game.ReplicatedStorage["RemoteEvents"].VanishCollect.OnClientEvent:Connect(function()
-	VanishCapEnable()
-end)
 LavaBoosting = false
 cananimate = true
 CanBoost = false
