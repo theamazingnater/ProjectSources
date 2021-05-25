@@ -4,5 +4,8 @@ An repository for all of the old programs I wrote that are no longer being used,
 # How do I use these? This way of uploading files is confusing.
 Usually a folder for a thing I made has an assembled version of it. Download that and insert it if you don't want to figure out how everything works.
 
+# What's this subfolder inside this folder with the same name as the main script only with a "scripts" next to it?
+That right there is the scripts that goes inside the main script.
+
 # Things included:
 Tiny ROBLOXian Clone Tool Remake
